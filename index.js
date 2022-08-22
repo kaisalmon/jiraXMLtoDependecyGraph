@@ -41,7 +41,7 @@ const issueToSubtasks = (issue) => {
     const subtasksArray = Array.isArray(subtasks) ? subtasks : [subtasks];
     return subtasksArray.map(x=>x.$t);
 }
-fs.readFile( './FiltersetProject-2020-15-08.xml', function(err, data) {
+fs.readFile( './jiraExports/18-8-2022.xml', function(err, data) {
     var {rss: {channel:{item}}} = JSON.parse(parser.toJson(data));
     let issues = item.map(issue => {
         return {
@@ -51,11 +51,11 @@ fs.readFile( './FiltersetProject-2020-15-08.xml', function(err, data) {
             subtasks: issueToSubtasks(issue),
             //color: ['Done', 'Resolved'].includes(issue.status.$t) ? '#e3fcef' : 
             color: ['Done', 'Resolved','Ready to final approval'].includes(issue.status.$t) ? '#e3fcef' : 
-                    ['In Progress', 'Ready for Dev review', 'Ready to final approval'].includes(issue.status.$t) ? '#deebff' :
+                    ['In Progress', 'Ready for Dev review', 'Ready to final approval', 'In code review'].includes(issue.status.$t) ? '#deebff' :
                     '#dddddd',
             //fontcolor: ['Done', 'Resolved'].includes(issue.status.$t) ? '#006644' : 
             fontcolor: ['Done', 'Resolved','Ready to final approval'].includes(issue.status.$t) ? '#006644' : 
-                    ['In Progress', 'Ready for Dev review', 'Ready to final approval'].includes(issue.status.$t) ? '#0747a6' :
+                    ['In Progress', 'Ready for Dev review', 'Ready to final approval', 'In code review'].includes(issue.status.$t) ? '#0747a6' :
                     '#000000'
         }
     })
@@ -136,7 +136,7 @@ function createVirtualIssues(issues){
         curr = JSON.stringify(curr);
         acc[curr] = (acc[curr] || 0) + 1;
         return acc;
-    })
+    }, {})
     const virtualTasks = Object.keys(blockBysCounts).filter(x=>blockBysCounts[x]>1).map(x=>JSON.parse(x));
     const virtualIssues = virtualTasks.map(task => ({
         id: `virtual-${task.join('-')}`,
