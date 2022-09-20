@@ -41,20 +41,24 @@ const issueToSubtasks = (issue) => {
     const subtasksArray = Array.isArray(subtasks) ? subtasks : [subtasks];
     return subtasksArray.map(x=>x.$t);
 }
-fs.readFile( './FiltersetProject-2020-15-08.xml', function(err, data) {
+fs.readFile( './host-access-20-sep.xml', function(err, data) {
     var {rss: {channel:{item}}} = JSON.parse(parser.toJson(data));
-    let issues = item.map(issue => {
+    let issues = item
+        .filter(issue => issue.status.$t !== 'Rejected')
+        .map(issue => {
         return {
             id: issue.link.split('/').pop(),
             title: issue.link.split('/').pop()+'<br/>'+addNewLineEveryNCharactersAfterWord(issue.title.split(']').pop()+'<br/><b>'+issue.status.$t+'</b>', 20),
             blocks: issuelinksToBlocks(issue.issuelinks?.issuelinktype),
             subtasks: issueToSubtasks(issue),
             //color: ['Done', 'Resolved'].includes(issue.status.$t) ? '#e3fcef' : 
-            color: ['Done', 'Resolved','Ready to final approval'].includes(issue.status.$t) ? '#e3fcef' : 
+            color: ['Done', 'Resolved'].includes(issue.status.$t) ? '#e3fcef' : 
+                    ['Ready to final approval'].includes(issue.status.$t) ? '#E1F4F7' :
                     ['In Progress', 'Ready for Dev review', 'Ready to final approval'].includes(issue.status.$t) ? '#deebff' :
                     '#dddddd',
             //fontcolor: ['Done', 'Resolved'].includes(issue.status.$t) ? '#006644' : 
-            fontcolor: ['Done', 'Resolved','Ready to final approval'].includes(issue.status.$t) ? '#006644' : 
+            fontcolor: ['Done', 'Resolved'].includes(issue.status.$t) ? '#006644' : 
+            ['Ready to final approval'].includes(issue.status.$t) ? '#045775' :
                     ['In Progress', 'Ready for Dev review', 'Ready to final approval'].includes(issue.status.$t) ? '#0747a6' :
                     '#000000'
         }
@@ -81,7 +85,9 @@ fs.readFile( './FiltersetProject-2020-15-08.xml', function(err, data) {
             "${issue.id}" [
                 label=<
                     <table border="0" cellborder="0" cellspacing="0">
-                        <tr><td>${issue.title}</td></tr>
+                        <tr><td>${issue.title
+                            .replace('&','and')
+                        }</td></tr>
                     </table>
                 >
                 color="${issue.color}"
@@ -111,7 +117,9 @@ const getEdgesString = (issues) => {
         ).join('\n');
     }).join('\n');
 
-    const startIssues = issues.filter(issue => !issues.some(x => x.blocks.includes(issue.id)))
+    const startIssues = issues
+        .filter(issue => !issues.some(x => x.blocks.includes(issue.id)))
+        .filter(issue => issue.subtasks.length === 0)
 
     const startEdges = startIssues.map(issue => {
         return `
