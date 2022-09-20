@@ -3,7 +3,7 @@ By Mr. Salmon [fish emoji]
 
 
 1. In jira search for all issues in an epic with this: 
-`project = "Lead Feed" AND ("Epic Link" IN (DEV-5412)) OR (issuetype = sub-task AND "parentEpic" IN (DEV-5412))` 
+`("Epic Link" IN (DEV-5412)) OR (issuetype = sub-task AND "parentEpic" IN (DEV-5412))` 
 where `DEV-5412` is the ticket of the epic.
 
 2. export as xml
