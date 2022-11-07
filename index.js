@@ -41,8 +41,11 @@ const issueToSubtasks = (issue) => {
     const subtasksArray = Array.isArray(subtasks) ? subtasks : [subtasks];
     return subtasksArray.map(x=>x.$t);
 }
-fs.readFile( './jiraExports/18-8-2022.xml', function(err, data) {
-    var {rss: {channel:{item}}} = JSON.parse(parser.toJson(data));
+fs.readFile('./jiraExports/18-8-2022.xml', 'utf8', function(err, data) {
+    const withoutDisclaimer = data.replace('This XML file does not appear to have any style information associated with it. The document tree is shown below.', '')
+    const withoutDuplicateRel = withoutDisclaimer.replace(new RegExp(/rel="noreferrer"/g), '')
+    const trimmed = withoutDuplicateRel.trim()
+    var {rss: {channel:{item}}} = parser.toJson(trimmed, { object: true });
     let issues = item.map(issue => {
         return {
             id: issue.link.split('/').pop(),
@@ -50,12 +53,14 @@ fs.readFile( './jiraExports/18-8-2022.xml', function(err, data) {
             blocks: issuelinksToBlocks(issue.issuelinks?.issuelinktype),
             subtasks: issueToSubtasks(issue),
             //color: ['Done', 'Resolved'].includes(issue.status.$t) ? '#e3fcef' : 
-            color: ['Done', 'Resolved','Ready to final approval'].includes(issue.status.$t) ? '#e3fcef' : 
-                    ['In Progress', 'Ready for Dev review', 'Ready to final approval', 'In code review'].includes(issue.status.$t) ? '#deebff' :
+            color: ['Done', 'Resolved','Ready to final approval', 'Released'].includes(issue.status.$t) ? '#e3fcef' : 
+                    ['In Progress', 'Ready for Dev review', 'Ready to final approval', 'In code review', 'In Testing'].includes(issue.status.$t) ? '#deebff' : 
+                    ['rejected'].includes(issue.status.$t) ? '#FDD5D1' :
                     '#dddddd',
             //fontcolor: ['Done', 'Resolved'].includes(issue.status.$t) ? '#006644' : 
-            fontcolor: ['Done', 'Resolved','Ready to final approval'].includes(issue.status.$t) ? '#006644' : 
-                    ['In Progress', 'Ready for Dev review', 'Ready to final approval', 'In code review'].includes(issue.status.$t) ? '#0747a6' :
+            fontcolor: ['Done', 'Resolved','Ready to final approval', 'Released'].includes(issue.status.$t) ? '#006644' : 
+                    ['In Progress', 'Ready for Dev review', 'Ready to final approval', 'In code review', 'In Testing'].includes(issue.status.$t) ? '#0747a6' :
+                    ['rejected'].includes(issue.status.$t) ? '#C95044' :
                     '#000000'
         }
     })
@@ -72,7 +77,6 @@ fs.readFile( './jiraExports/18-8-2022.xml', function(err, data) {
     output = removeDoubleNewlines(output);
 
     console.log(output);
-
  });
 
  const getNodesString = (issues) => {
